@@ -1,0 +1,2198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fancy — Finna's Archive</title>
+<meta name="description" content="A personal wardrobe archive, curated for Finna.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@200;300;400&family=Cormorant:ital,wght@0,300;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+/* =============================================
+   DESIGN TOKENS
+============================================= */
+:root {
+  --ivory:    #F7F3ED;
+  --cream:    #EDE6DB;
+  --blush:    #E4CDBF;
+  --sand:     #C9A98A;
+  --black:    #0F0F0F;
+  --charcoal: #2A2525;
+  --muted:    #8C7B72;
+  --scarlet:  #8B1A1A;
+  --rose:     #C0524A;
+  --border:   rgba(180,155,130,0.22);
+  --glass:    rgba(247,243,237,0.82);
+
+  --font-display: 'Playfair Display', serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-italic:  'Cormorant', serif;
+
+  --ease-out:  cubic-bezier(0.16,1,0.3,1);
+  --ease-in:   cubic-bezier(0.7,0,0.84,0);
+  --spring:    cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* =============================================
+   RESET & BASE
+============================================= */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--font-body);
+  background: var(--ivory);
+  color: var(--charcoal);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+button { cursor: pointer; font-family: var(--font-body); }
+input, select, textarea { font-family: var(--font-body); }
+a { text-decoration: none; color: inherit; }
+img { display: block; width: 100%; }
+
+/* =============================================
+   CUSTOM CURSOR (desktop only)
+============================================= */
+@media (pointer: fine) {
+  body { cursor: none; }
+  #cur, #cur-trail {
+    position: fixed; border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+  }
+  #cur {
+    width: 8px; height: 8px;
+    background: var(--scarlet);
+    transition: transform .12s var(--spring), background .3s;
+  }
+  #cur-trail {
+    width: 30px; height: 30px;
+    border: 1px solid var(--sand);
+    opacity: .6;
+    transition: left .18s var(--ease-out), top .18s var(--ease-out), transform .3s var(--spring);
+  }
+  body:has(button:hover) #cur,
+  body:has(a:hover) #cur { transform: translate(-50%,-50%) scale(2.5); background: var(--rose); }
+}
+
+/* =============================================
+   PRELOADER
+============================================= */
+#preloader {
+  position: fixed; inset: 0; z-index: 9000;
+  background: var(--black);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 32px;
+  transition: opacity .8s var(--ease-in), transform .8s var(--ease-in);
+}
+#preloader.hide { opacity: 0; transform: translateY(-8px); pointer-events: none; }
+
+.pre-corners span {
+  position: fixed; width: 22px; height: 22px;
+  border-color: var(--sand); border-style: solid; opacity: .5;
+}
+.pre-corners span:nth-child(1) { top:28px; left:28px; border-width:1px 0 0 1px; }
+.pre-corners span:nth-child(2) { top:28px; right:28px; border-width:1px 1px 0 0; }
+.pre-corners span:nth-child(3) { bottom:28px; left:28px; border-width:0 0 1px 1px; }
+.pre-corners span:nth-child(4) { bottom:28px; right:28px; border-width:0 1px 1px 0; }
+
+.pre-pct {
+  font-family: var(--font-display);
+  font-size: clamp(80px, 20vw, 160px);
+  font-weight: 400;
+  color: var(--ivory);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  opacity: 0;
+  animation: fadeIn .4s .3s var(--ease-out) forwards;
+}
+.pre-pct sup {
+  font-size: .35em;
+  vertical-align: super;
+  color: var(--scarlet);
+  letter-spacing: 0;
+}
+.pre-label {
+  font-size: 10px;
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 300;
+  opacity: 0;
+  animation: fadeIn .4s .5s var(--ease-out) forwards;
+}
+.pre-bar-wrap {
+  width: min(320px, 80vw);
+  height: 1px;
+  background: rgba(255,255,255,.08);
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeIn .4s .6s var(--ease-out) forwards;
+}
+.pre-bar {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: linear-gradient(90deg, var(--sand), var(--rose));
+  width: 0;
+  transition: width .05s linear;
+}
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+/* =============================================
+   HEADER / NAV
+============================================= */
+header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(20px, 5vw, 60px);
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+  transition: background .4s;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: .02em;
+  color: var(--black);
+  font-style: italic;
+}
+.logo-dot { color: var(--scarlet); }
+
+nav {
+  display: flex; gap: 6px; align-items: center;
+}
+.nav-btn {
+  padding: 7px 14px;
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  font-weight: 300;
+  transition: color .25s;
+  position: relative;
+  white-space: nowrap;
+}
+.nav-btn::after {
+  content: '';
+  position: absolute; bottom: 2px; left: 50%; right: 50%;
+  height: 1px; background: var(--scarlet);
+  transition: left .3s var(--ease-out), right .3s var(--ease-out);
+}
+.nav-btn:hover, .nav-btn.active { color: var(--black); }
+.nav-btn.active::after { left: 14px; right: 14px; }
+
+/* Hamburger (mobile) */
+.hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  background: none; border: none; padding: 4px;
+}
+.hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--charcoal);
+  transition: all .3s var(--ease-out);
+}
+.hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(4.5px,4.5px); }
+.hamburger.open span:nth-child(2) { opacity: 0; transform: translateX(-8px); }
+.hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(4.5px,-4.5px); }
+
+/* Mobile Drawer */
+.mob-nav {
+  position: fixed; top: 64px; left: 0; right: 0; z-index: 490;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  transform: translateY(-110%);
+  transition: transform .4s var(--ease-out);
+}
+.mob-nav.open { transform: none; }
+.mob-nav .nav-btn { font-size: 12px; padding: 14px 20px; width: 100%; text-align: center; }
+
+/* =============================================
+   PAGE SYSTEM
+============================================= */
+.page {
+  min-height: 100vh;
+  display: none;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .5s var(--ease-out), transform .5s var(--ease-out);
+}
+.page.active {
+  display: block;
+  opacity: 1;
+  transform: none;
+}
+
+/* Per-page personality via data attribute */
+/* Home = warm ivory */
+/* Wardrobe = cream with soft texture */
+/* Generator = dramatic dark */
+/* Week = airy blush */
+/* Essentials = deep neutral */
+
+/* =============================================
+   DECORATIVE CORNERS (reusable)
+============================================= */
+.corner-wrap { position: relative; }
+.corners span {
+  position: absolute; width: 14px; height: 14px;
+  border-color: var(--sand); border-style: solid; opacity: .4;
+  pointer-events: none;
+}
+.corners span:nth-child(1) { top:-1px; left:-1px; border-width:1px 0 0 1px; }
+.corners span:nth-child(2) { top:-1px; right:-1px; border-width:1px 1px 0 0; }
+.corners span:nth-child(3) { bottom:-1px; left:-1px; border-width:0 0 1px 1px; }
+.corners span:nth-child(4) { bottom:-1px; right:-1px; border-width:0 1px 1px 0; }
+
+/* =============================================
+   SECTION WRAPPER
+============================================= */
+.wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 60px);
+}
+.pt { padding-top: 64px; }
+
+/* =============================================
+   HOME PAGE
+============================================= */
+#home {
+  background: var(--ivory);
+  position: relative;
+  overflow: hidden;
+}
+
+.home-grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  opacity: .03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 128px;
+}
+
+/* Floating orbs */
+.orb {
+  position: absolute; border-radius: 50%;
+  pointer-events: none; will-change: transform;
+  animation: float 8s ease-in-out infinite;
+}
+.orb-1 {
+  width: clamp(300px,40vw,600px); height: clamp(300px,40vw,600px);
+  top: -10%; right: -8%;
+  background: radial-gradient(circle at 40% 40%, rgba(228,205,191,.6), transparent 70%);
+  animation-delay: 0s;
+}
+.orb-2 {
+  width: clamp(200px,25vw,380px); height: clamp(200px,25vw,380px);
+  bottom: 5%; left: -5%;
+  background: radial-gradient(circle at 60% 60%, rgba(139,26,26,.08), transparent 70%);
+  animation-delay: -4s;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(3deg); }
+}
+
+.hero-wrap {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding-top: 64px;
+  position: relative; z-index: 2;
+}
+
+.hero-eyebrow {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 28px;
+  opacity: 0; animation: slideUp .7s .2s var(--ease-out) forwards;
+}
+.hero-eyebrow-line { width: 40px; height: 1px; background: var(--sand); }
+.hero-eyebrow-text {
+  font-size: 10px; letter-spacing: .35em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(54px, 10vw, 130px);
+  font-weight: 400; line-height: .92;
+  letter-spacing: -.03em;
+  color: var(--black);
+  opacity: 0; animation: slideUp .8s .3s var(--ease-out) forwards;
+}
+.hero-title em { font-style: italic; color: var(--scarlet); }
+
+.hero-sub {
+  font-family: var(--font-italic);
+  font-size: clamp(16px,2.5vw,24px);
+  font-style: italic;
+  color: var(--muted);
+  font-weight: 300;
+  margin-top: 24px; max-width: 440px; line-height: 1.7;
+  opacity: 0; animation: slideUp .8s .45s var(--ease-out) forwards;
+}
+
+.hero-ctas {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  margin-top: 48px;
+  opacity: 0; animation: slideUp .8s .6s var(--ease-out) forwards;
+}
+
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(24px); }
+  to   { opacity:1; transform:none; }
+}
+
+/* STATS ROW */
+.stats-row {
+  display: flex; gap: clamp(24px,4vw,60px);
+  padding: 40px 0; margin-top: 60px;
+  border-top: 1px solid var(--border);
+  opacity: 0; animation: slideUp .8s .75s var(--ease-out) forwards;
+}
+.stat-item { display: flex; flex-direction: column; gap: 4px; }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(28px,4vw,48px);
+  font-weight: 400; letter-spacing: -.03em;
+  color: var(--black);
+}
+.stat-label {
+  font-size: 9px; letter-spacing: .25em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+}
+
+/* SCROLL CUE */
+.scroll-cue {
+  position: absolute; bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: var(--muted); z-index: 2;
+  opacity: 0; animation: fadeIn 1s 1.2s forwards;
+}
+.scroll-cue span {
+  font-size: 8px; letter-spacing: .3em; text-transform: uppercase; font-weight: 300;
+}
+.scroll-cue-arrow {
+  width: 1px; height: 44px;
+  background: linear-gradient(to bottom, var(--sand), transparent);
+  animation: scrollCue 2s ease-in-out infinite;
+}
+@keyframes scrollCue {
+  0%,100% { opacity:.4; transform:scaleY(1); }
+  50% { opacity:1; transform:scaleY(1.15); }
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 32px;
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  font-weight: 300; border: none;
+  transition: all .3s var(--ease-out);
+  position: relative; overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  transform: translateX(-101%);
+  transition: transform .35s var(--ease-out);
+}
+.btn:hover::before { transform: none; }
+
+.btn-dark {
+  background: var(--black); color: var(--ivory);
+}
+.btn-dark::before { background: var(--scarlet); }
+
+.btn-outline {
+  background: transparent; color: var(--charcoal);
+  border: 1px solid var(--border);
+}
+.btn-outline::before { background: var(--cream); }
+.btn-outline:hover { border-color: var(--black); }
+
+.btn-scarlet {
+  background: var(--scarlet); color: var(--ivory);
+}
+.btn-scarlet::before { background: #6e1414; }
+
+/* =============================================
+   SECTION HEADERS (shared)
+============================================= */
+.sec-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding: 60px 0 40px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+  gap: 20px; flex-wrap: wrap;
+}
+.sec-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 58px);
+  font-weight: 400; letter-spacing: -.025em;
+  line-height: 1;
+}
+.sec-title em { font-style: italic; color: var(--scarlet); }
+.sec-subtitle {
+  font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300; margin-top: 8px;
+}
+
+/* =============================================
+   WARDROBE PAGE
+============================================= */
+#wardrobe {
+  background: var(--cream);
+  background-image: 
+    radial-gradient(ellipse at 80% 10%, rgba(228,205,191,.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 10% 90%, rgba(139,26,26,.04) 0%, transparent 50%);
+}
+
+/* STATUS TABS */
+.status-tabs {
+  display: flex; gap: 0;
+  overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+.status-tabs::-webkit-scrollbar { display: none; }
+
+.stab {
+  padding: 12px 22px;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+  background: transparent; border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition: color .25s, border-color .25s;
+  display: flex; align-items: center; gap: 8px;
+}
+.stab:hover { color: var(--charcoal); }
+.stab.active { color: var(--black); border-bottom-color: var(--scarlet); }
+.stab-count {
+  font-size: 9px; padding: 2px 7px;
+  background: var(--blush);
+  color: var(--muted);
+  border-radius: 99px;
+}
+.stab.active .stab-count {
+  background: var(--scarlet); color: var(--ivory);
+}
+
+/* CATEGORY PILLS */
+.cat-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+.cat-pill {
+  padding: 8px 18px;
+  font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+  background: transparent;
+  border: 1px solid var(--border);
+  transition: all .25s;
+}
+.cat-pill:hover { border-color: var(--charcoal); color: var(--charcoal); }
+.cat-pill.active {
+  background: var(--black); color: var(--ivory); border-color: var(--black);
+}
+
+/* CLOTHES GRID */
+.clothes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 45vw), 1fr));
+  gap: clamp(8px,1.5vw,14px);
+}
+
+.c-card {
+  background: var(--ivory);
+  position: relative; overflow: hidden;
+  transition: transform .4s var(--ease-out), box-shadow .4s;
+  animation: fadeUp .5s var(--ease-out) both;
+}
+.c-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 50px rgba(15,15,15,.1);
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:none; }
+}
+
+.c-card-img {
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  background: var(--blush);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.c-card-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .6s var(--ease-out);
+}
+.c-card:hover .c-card-img img { transform: scale(1.05); }
+
+.c-card-ph {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 10px;
+  color: var(--muted); opacity: .5;
+  height: 100%;
+  font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+}
+.c-card-ph-icon { font-size: 28px; }
+
+.c-card-overlay {
+  position: absolute; inset: 0;
+  background: rgba(15,15,15,.55);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  opacity: 0;
+  transition: opacity .3s;
+  backdrop-filter: blur(2px);
+}
+.c-card:hover .c-card-overlay { opacity: 1; }
+
+.c-card-overlay button {
+  padding: 9px 16px;
+  font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+  font-weight: 300; border: none;
+  transition: transform .2s var(--spring);
+}
+.c-card-overlay button:hover { transform: scale(1.05); }
+.c-card-overlay .ov-view { background: var(--ivory); color: var(--black); }
+.c-card-overlay .ov-move { background: var(--scarlet); color: var(--ivory); }
+
+.c-card-body { padding: 14px 16px; }
+.c-card-name {
+  font-family: var(--font-display);
+  font-size: clamp(15px,2vw,19px);
+  font-weight: 400; letter-spacing: -.01em; margin-bottom: 4px;
+}
+.c-card-cat {
+  font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+}
+
+.c-status-dot {
+  position: absolute; top: 12px; left: 12px;
+  width: 7px; height: 7px; border-radius: 50%;
+}
+.dot-owned   { background: var(--scarlet); }
+.dot-arriving { background: var(--sand); }
+.dot-wishlist { background: var(--muted); opacity: .6; }
+.dot-vault { background: var(--charcoal); opacity: .4; }
+
+/* Add card */
+.c-card-add {
+  background: transparent;
+  border: 1px dashed var(--border);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; aspect-ratio: 3/4;
+  font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+  transition: all .3s;
+  width: 100%;
+}
+.c-card-add:hover {
+  border-color: var(--charcoal); color: var(--charcoal);
+  background: rgba(255,255,255,.3);
+}
+.c-card-add-icon { font-size: 26px; color: var(--blush); transition: color .3s; }
+.c-card-add:hover .c-card-add-icon { color: var(--sand); }
+
+/* =============================================
+   GENERATOR PAGE
+============================================= */
+#generator {
+  background: var(--black);
+  background-image:
+    radial-gradient(ellipse at 70% 0%, rgba(139,26,26,.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(228,205,191,.06) 0%, transparent 50%);
+  color: var(--ivory);
+  min-height: 100vh;
+}
+#generator .sec-title { color: var(--ivory); }
+#generator .sec-subtitle { color: rgba(255,255,255,.35); }
+#generator .sec-head { border-bottom-color: rgba(255,255,255,.08); }
+
+.gen-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 48px;
+  align-items: start;
+}
+@media (max-width: 768px) {
+  .gen-layout { grid-template-columns: 1fr; }
+}
+
+/* Form card */
+.gen-form-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  padding: 32px;
+  position: sticky; top: 80px;
+}
+
+.form-sec { margin-bottom: 28px; }
+.form-sec-label {
+  font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+  color: rgba(255,255,255,.35); font-weight: 300; margin-bottom: 12px;
+  display: block;
+}
+
+.occasion-grid, .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+.tog {
+  padding: 11px 8px;
+  font-size: 9px; letter-spacing: .15em; text-transform: uppercase;
+  font-weight: 300;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  color: rgba(255,255,255,.45);
+  transition: all .25s;
+  text-align: center;
+}
+.tog:hover { background: rgba(255,255,255,.08); color: rgba(255,255,255,.8); }
+.tog.active {
+  background: var(--scarlet); color: var(--ivory);
+  border-color: var(--scarlet);
+}
+
+.gen-select {
+  width: 100%;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.7);
+  padding: 12px 14px;
+  font-size: 11px; font-weight: 300;
+  appearance: none;
+  transition: border-color .25s;
+}
+.gen-select:focus { outline: none; border-color: rgba(255,255,255,.3); }
+option { background: #1a1a1a; }
+
+.gen-btn {
+  width: 100%; padding: 16px;
+  background: var(--ivory); color: var(--black);
+  border: none;
+  font-size: 10px; letter-spacing: .28em; text-transform: uppercase;
+  font-weight: 300;
+  transition: background .3s, color .3s, transform .2s var(--spring);
+  margin-top: 8px;
+}
+.gen-btn:hover {
+  background: var(--scarlet); color: var(--ivory);
+  transform: translateY(-1px);
+}
+
+/* Outfit display */
+.gen-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 400px;
+  color: rgba(255,255,255,.2);
+  text-align: center; gap: 16px;
+}
+.gen-empty-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px,4vw,42px);
+  font-style: italic; font-weight: 400;
+  color: rgba(255,255,255,.15);
+}
+.gen-empty p {
+  font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+  font-weight: 300; line-height: 2;
+  color: rgba(255,255,255,.18);
+}
+
+.outfit-card { animation: fadeUp .6s var(--ease-out) forwards; }
+
+.outfit-header {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 32px;
+  flex-wrap: wrap; gap: 12px;
+}
+.outfit-date-text {
+  font-family: var(--font-display);
+  font-size: clamp(28px,3.5vw,42px);
+  font-style: italic;
+  color: var(--ivory);
+}
+.outfit-tag {
+  padding: 8px 18px;
+  background: var(--scarlet);
+  font-size: 9px; letter-spacing: .22em;
+  text-transform: uppercase; font-weight: 300;
+  color: var(--ivory);
+}
+
+.outfit-pieces-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(160px,40vw),1fr));
+  gap: 8px; margin-bottom: 28px;
+}
+
+.outfit-piece-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.06);
+  overflow: hidden;
+  animation: fadeUp .4s var(--ease-out) both;
+}
+
+.outfit-piece-img {
+  aspect-ratio: 3/4;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; opacity: .3;
+  background: rgba(255,255,255,.03);
+  overflow: hidden;
+}
+.outfit-piece-img img {
+  width: 100%; height: 100%; object-fit: cover; opacity: 1;
+}
+
+.outfit-piece-info { padding: 10px 12px; }
+.outfit-piece-type {
+  font-size: 8px; letter-spacing: .2em; text-transform: uppercase;
+  color: rgba(255,255,255,.3); font-weight: 300; margin-bottom: 3px;
+}
+.outfit-piece-name {
+  font-family: var(--font-display);
+  font-size: 14px; color: var(--ivory);
+}
+
+.outfit-note {
+  border-left: 2px solid var(--scarlet);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  background: rgba(139,26,26,.08);
+  font-family: var(--font-italic);
+  font-size: clamp(16px,2vw,20px);
+  font-style: italic; color: rgba(255,255,255,.6);
+  line-height: 1.7;
+}
+
+.outfit-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.outfit-actions .btn { font-size: 9px; padding: 13px 24px; }
+
+/* =============================================
+   WEEKLY PLANNER PAGE
+============================================= */
+#weekly {
+  background: var(--ivory);
+  background-image: radial-gradient(ellipse at 90% 50%, rgba(228,205,191,.4) 0%, transparent 60%);
+}
+
+.week-setup {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  padding: 32px;
+  margin-bottom: 40px;
+}
+.week-setup-title {
+  font-family: var(--font-display);
+  font-size: 22px; font-style: italic;
+  margin-bottom: 20px; color: var(--black);
+}
+
+.week-day-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(160px,42vw), 1fr));
+  gap: 10px; margin-bottom: 24px;
+}
+
+.day-input-cell {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.day-input-label {
+  font-size: 8px; letter-spacing: .25em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+}
+.day-select {
+  background: var(--ivory);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  font-size: 10px; color: var(--charcoal); font-weight: 300;
+  appearance: none;
+  transition: border-color .25s;
+}
+.day-select:focus { outline: none; border-color: var(--charcoal); }
+
+.plan-btn {
+  display: flex; align-items: center; gap: 12px;
+}
+
+/* WEEK PROGRESS — drama stat */
+.week-progress-wrap {
+  margin-bottom: 40px;
+  background: var(--black);
+  padding: 28px 32px;
+  color: var(--ivory);
+  display: flex; align-items: center; gap: 32px;
+  flex-wrap: wrap;
+}
+.week-pct-big {
+  font-family: var(--font-display);
+  font-size: clamp(48px,8vw,88px);
+  font-weight: 400; letter-spacing: -.04em;
+  color: var(--ivory); line-height: 1;
+}
+.week-pct-big span { color: var(--scarlet); font-size: .5em; vertical-align: super; }
+.week-pct-label {
+  font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+  color: rgba(255,255,255,.3); font-weight: 300; margin-top: 6px;
+}
+.week-bar-track {
+  flex: 1; min-width: 160px;
+  height: 2px; background: rgba(255,255,255,.08);
+  position: relative; overflow: hidden;
+}
+.week-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sand), var(--scarlet));
+  width: 0;
+  transition: width 1.2s var(--ease-out);
+}
+
+/* WEEK GRID */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+@media (max-width: 900px) {
+  .week-grid { grid-template-columns: repeat(4,1fr); }
+}
+@media (max-width: 560px) {
+  .week-grid { grid-template-columns: repeat(2,1fr); }
+}
+
+.day-card {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  padding: 16px 14px;
+  min-height: 180px;
+  transition: transform .3s var(--ease-out), box-shadow .3s;
+  position: relative; overflow: hidden;
+}
+.day-card::before {
+  content: '';
+  position: absolute; bottom: 0; left: 0;
+  width: 100%; height: 3px;
+  background: var(--scarlet);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .4s var(--ease-out);
+}
+.day-card.has-plan::before { transform: scaleX(1); }
+.day-card.has-plan:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(15,15,15,.08); }
+
+.day-card-name {
+  font-size: 8px; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300; margin-bottom: 6px;
+}
+.day-card-occ {
+  font-family: var(--font-display);
+  font-size: 13px; font-style: italic;
+  color: var(--scarlet); margin-bottom: 10px;
+}
+.day-piece-item {
+  font-size: 10px; color: var(--charcoal); font-weight: 300;
+  padding: 4px 0; border-bottom: 1px solid var(--border);
+  letter-spacing: .03em;
+}
+.day-piece-item:last-child { border: none; }
+
+.day-card-empty {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 180px;
+  border: 1px dashed var(--border);
+  color: var(--muted); opacity: .5;
+  font-size: 9px; letter-spacing: .2em; text-transform: uppercase; font-weight: 300;
+  text-align: center;
+}
+
+/* =============================================
+   ESSENTIALS PAGE
+============================================= */
+#essentials {
+  background: var(--cream);
+  background-image: radial-gradient(ellipse at 30% 20%, rgba(139,26,26,.06) 0%, transparent 50%);
+}
+
+/* MUST-HAVES strip */
+.must-haves-section { margin-bottom: 56px; }
+.must-haves-title {
+  font-family: var(--font-display);
+  font-size: clamp(24px,3.5vw,40px);
+  font-style: italic; margin-bottom: 6px;
+}
+.must-haves-sub {
+  font-size: 9px; letter-spacing: .25em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300; margin-bottom: 28px;
+}
+
+/* Carousel */
+.carousel-wrap { position: relative; }
+.carousel {
+  display: flex; gap: 12px;
+  overflow-x: auto; scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.carousel::-webkit-scrollbar { display: none; }
+
+.must-card {
+  flex: 0 0 min(200px, 44vw);
+  scroll-snap-align: start;
+  background: var(--ivory);
+  border: 1px solid var(--border);
+  padding: 0 0 16px;
+  position: relative;
+  transition: transform .3s var(--ease-out);
+}
+.must-card:hover { transform: translateY(-4px); }
+
+.must-card-img {
+  aspect-ratio: 1/1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  background: var(--blush);
+  margin-bottom: 12px;
+}
+.must-card-img img { width: 100%; height: 100%; object-fit: cover; }
+
+.must-card-name {
+  font-family: var(--font-display);
+  font-size: 15px; padding: 0 14px; margin-bottom: 4px;
+}
+.must-card-desc {
+  font-size: 10px; color: var(--muted); font-weight: 300;
+  padding: 0 14px; line-height: 1.5;
+}
+.must-card-status {
+  display: flex; gap: 6px; padding: 8px 14px 0;
+}
+.mstatus-btn {
+  flex: 1; padding: 7px 4px;
+  font-size: 8px; letter-spacing: .15em; text-transform: uppercase;
+  font-weight: 300; border: 1px solid var(--border); background: transparent;
+  color: var(--muted); transition: all .2s;
+  text-align: center;
+}
+.mstatus-btn.active-own { background: var(--scarlet); color: var(--ivory); border-color: var(--scarlet); }
+.mstatus-btn.active-want { background: var(--black); color: var(--ivory); border-color: var(--black); }
+.mstatus-btn:hover { border-color: var(--charcoal); color: var(--charcoal); }
+
+/* Carousel nav arrows */
+.car-nav {
+  display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end;
+}
+.car-arrow {
+  width: 36px; height: 36px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .25s;
+}
+.car-arrow:hover { background: var(--black); color: var(--ivory); border-color: var(--black); }
+
+/* ESSENTIALS TABS */
+.ess-tabs { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid var(--border); }
+.etab {
+  padding: 12px 20px;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+  background: transparent; border: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  white-space: nowrap; transition: all .25s;
+}
+.etab:hover { color: var(--charcoal); }
+.etab.active { color: var(--black); border-bottom-color: var(--scarlet); }
+
+/* Essentials grid */
+.ess-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(180px,42vw),1fr));
+  gap: 10px;
+}
+
+.ess-card {
+  background: var(--ivory);
+  padding: 20px;
+  border: 1px solid var(--border);
+  transition: transform .3s var(--ease-out), box-shadow .3s;
+  animation: fadeUp .4s var(--ease-out) both;
+}
+.ess-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(15,15,15,.07);
+}
+.ess-card-icon { font-size: 24px; margin-bottom: 10px; }
+.ess-card-img { width: 100%; aspect-ratio: 1; object-fit: cover; margin-bottom: 10px; }
+.ess-card-name {
+  font-family: var(--font-display);
+  font-size: 17px; margin-bottom: 4px;
+}
+.ess-card-note {
+  font-size: 10px; color: var(--muted); font-weight: 300;
+  line-height: 1.6;
+}
+
+.ess-card-add {
+  background: transparent; border: 1px dashed var(--border);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px; min-height: 140px;
+  font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+  width: 100%;
+  transition: all .25s;
+}
+.ess-card-add:hover { border-color: var(--charcoal); color: var(--charcoal); }
+
+/* Scent card special */
+.scent-card { border-left: 2px solid var(--sand); }
+
+/* =============================================
+   MODALS
+============================================= */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 800;
+  background: rgba(15,15,15,.65);
+  backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-bg.open { display: flex; }
+
+.modal {
+  background: var(--ivory);
+  width: 100%; max-width: 520px;
+  padding: clamp(28px,5vw,48px);
+  position: relative;
+  animation: modalIn .4s var(--ease-out) forwards;
+  max-height: 90vh; overflow-y: auto;
+}
+@keyframes modalIn {
+  from { opacity:0; transform:translateY(24px) scale(.98); }
+  to { opacity:1; transform:none; }
+}
+
+.modal-close {
+  position: absolute; top: 20px; right: 20px;
+  background: none; border: none;
+  font-size: 22px; color: var(--muted); line-height: 1;
+  transition: color .2s, transform .2s;
+  font-weight: 200;
+}
+.modal-close:hover { color: var(--black); transform: rotate(90deg); }
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 28px; font-weight: 400; margin-bottom: 4px;
+}
+.modal-sub {
+  font-size: 9px; letter-spacing: .25em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300; margin-bottom: 28px;
+}
+
+/* UPLOAD ZONE */
+.upload-zone {
+  border: 1px dashed var(--sand);
+  padding: 32px;
+  text-align: center; margin-bottom: 20px;
+  transition: border-color .3s, background .3s;
+  position: relative; cursor: pointer;
+}
+.upload-zone:hover { border-color: var(--charcoal); background: rgba(255,255,255,.5); }
+.upload-zone input {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  width: 100%; height: 100%;
+}
+.upload-icon-big { font-size: 28px; color: var(--blush); margin-bottom: 10px; }
+.upload-text {
+  font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted); font-weight: 300;
+}
+.upload-preview-img {
+  width: 100%; max-height: 140px; object-fit: contain;
+  display: none; margin-bottom: 8px;
+}
+
+/* FORM FIELDS */
+.field { margin-bottom: 16px; }
+.field-label {
+  display: block; font-size: 9px; letter-spacing: .28em;
+  text-transform: uppercase; color: var(--muted);
+  font-weight: 300; margin-bottom: 8px;
+}
+.field-input, .field-select {
+  width: 100%;
+  background: transparent; border: 1px solid var(--border);
+  padding: 12px 14px;
+  font-size: 12px; color: var(--charcoal); font-weight: 300;
+  transition: border-color .25s;
+  appearance: none;
+}
+.field-input:focus, .field-select:focus {
+  outline: none; border-color: var(--charcoal);
+}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* =============================================
+   TOAST
+============================================= */
+.toast {
+  position: fixed; bottom: 32px; right: 28px; z-index: 900;
+  background: var(--black); color: var(--ivory);
+  padding: 14px 24px;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  font-weight: 300;
+  transform: translateY(16px); opacity: 0;
+  transition: all .4s var(--ease-out);
+  pointer-events: none;
+  max-width: calc(100vw - 56px);
+}
+.toast.show { transform: none; opacity: 1; }
+
+/* =============================================
+   RESPONSIVE NAV BREAKPOINTS
+============================================= */
+@media (max-width: 768px) {
+  nav { display: none; }
+  .hamburger { display: flex; }
+  .stat-num { font-size: 28px; }
+  .stats-row { gap: 20px; flex-wrap: wrap; }
+  .hero-ctas { gap: 10px; }
+  .btn { padding: 12px 22px; }
+  .sec-head { padding: 40px 0 28px; }
+  .sec-head .btn { display: none; }
+  .sec-head-mob-btn { display: flex !important; margin-bottom: 20px; }
+  .gen-form-card { position: relative; top: 0; }
+  .week-setup { padding: 20px; }
+  .modal { padding: 24px; }
+}
+
+/* hidden mobile add btn that appears */
+.sec-head-mob-btn { display: none; }
+
+/* =============================================
+   SCROLL REVEAL (via JS class)
+============================================= */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .6s var(--ease-out), transform .6s var(--ease-out);
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* =============================================
+   UTILITY
+============================================= */
+.sr-only { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0); }
+.divider { width: 32px; height: 1px; background: var(--sand); margin: 12px 0; }
+
+/* =============================================
+   PRINT (GitHub Pages safe)
+============================================= */
+@media print { #preloader, #cur, #cur-trail { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div id="cur"></div>
+<div id="cur-trail"></div>
+
+<!-- Preloader -->
+<div id="preloader">
+  <div class="pre-corners">
+    <span></span><span></span><span></span><span></span>
+  </div>
+  <div class="pre-pct" id="preNum">0<sup>%</sup></div>
+  <div class="pre-label">Curating your archive</div>
+  <div class="pre-bar-wrap"><div class="pre-bar" id="preBar"></div></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Fanc<span class="logo-dot">y</span></div>
+  <nav>
+    <button class="nav-btn active" data-page="home">Atelier</button>
+    <button class="nav-btn" data-page="wardrobe">Wardrobe</button>
+    <button class="nav-btn" data-page="generator">Dress Me</button>
+    <button class="nav-btn" data-page="weekly">The Week</button>
+    <button class="nav-btn" data-page="essentials">Essentials</button>
+  </nav>
+  <button class="hamburger" id="ham" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+<div class="mob-nav" id="mobNav">
+  <button class="nav-btn" data-page="home">Atelier</button>
+  <button class="nav-btn" data-page="wardrobe">Wardrobe</button>
+  <button class="nav-btn" data-page="generator">Dress Me</button>
+  <button class="nav-btn" data-page="weekly">The Week</button>
+  <button class="nav-btn" data-page="essentials">Essentials</button>
+</div>
+
+<!-- =================== HOME =================== -->
+<div class="page active" id="home">
+  <div class="home-grain"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="wrap">
+    <div class="hero-wrap">
+      <div class="hero-eyebrow">
+        <div class="hero-eyebrow-line"></div>
+        <div class="hero-eyebrow-text">Finna's Personal Archive</div>
+      </div>
+      <h1 class="hero-title">Dressed<br>by <em>Design</em></h1>
+      <p class="hero-sub">A private atelier where every garment is catalogued, every morning considered, and every occasion honoured.</p>
+      <div class="hero-ctas">
+        <button class="btn btn-dark" data-page="wardrobe">Enter the Wardrobe</button>
+        <button class="btn btn-outline" data-page="generator">Dress Me Today</button>
+      </div>
+      <div class="stats-row" id="homeStats">
+        <div class="stat-item">
+          <div class="stat-num" id="stat-owned">0</div>
+          <div class="stat-label">In Possession</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="stat-wish">0</div>
+          <div class="stat-label">On the Wish List</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="stat-essentials">0</div>
+          <div class="stat-label">Essentials</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="stat-week">0</div>
+          <div class="stat-label">Days Planned</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue">
+    <span>Explore</span>
+    <div class="scroll-cue-arrow"></div>
+  </div>
+</div>
+
+<!-- =================== WARDROBE =================== -->
+<div class="page" id="wardrobe">
+  <div class="wrap pt">
+    <div class="sec-head">
+      <div>
+        <h2 class="sec-title">The <em>Wardrobe</em></h2>
+        <div class="divider"></div>
+        <p class="sec-subtitle">All pieces, curated and catalogued</p>
+      </div>
+      <button class="btn btn-dark" onclick="openModal('addModal')">Add a Piece</button>
+    </div>
+    <button class="btn btn-dark sec-head-mob-btn" onclick="openModal('addModal')">Add a Piece</button>
+
+    <!-- Status Tabs -->
+    <div class="status-tabs">
+      <button class="stab active" data-tab="owned">In My Possession <span class="stab-count" id="count-owned">0</span></button>
+      <button class="stab" data-tab="arriving">Arriving Soon <span class="stab-count" id="count-arriving">0</span></button>
+      <button class="stab" data-tab="wishlist">Wish List <span class="stab-count" id="count-wishlist">0</span></button>
+      <button class="stab" data-tab="vault">The Vault <span class="stab-count" id="count-vault">0</span></button>
+    </div>
+
+    <!-- Category filters -->
+    <div class="cat-row">
+      <button class="cat-pill active" data-cat="all">All</button>
+      <button class="cat-pill" data-cat="old-money">Old Money</button>
+      <button class="cat-pill" data-cat="casual">Effortless Casual</button>
+      <button class="cat-pill" data-cat="evening">Evening Silhouettes</button>
+      <button class="cat-pill" data-cat="day-dress">Day Dresses</button>
+      <button class="cat-pill" data-cat="outerwear">Outerwear</button>
+    </div>
+
+    <div class="clothes-grid" id="clothesGrid"></div>
+  </div>
+</div>
+
+<!-- =================== GENERATOR =================== -->
+<div class="page" id="generator">
+  <div class="wrap pt">
+    <div class="sec-head">
+      <div>
+        <h2 class="sec-title">Dress <em>Me</em></h2>
+        <p class="sec-subtitle">Tell me the day. I'll tell you the outfit.</p>
+      </div>
+    </div>
+
+    <div class="gen-layout">
+      <!-- Controls -->
+      <div class="gen-form-card corner-wrap">
+        <div class="corners"><span></span><span></span><span></span><span></span></div>
+        <div class="form-sec">
+          <span class="form-sec-label">The Occasion</span>
+          <div class="occasion-grid">
+            <button class="tog active" data-occ="Work / Office">Work</button>
+            <button class="tog" data-occ="College">College</button>
+            <button class="tog" data-occ="Date Night">Date Night</button>
+            <button class="tog" data-occ="Seeing Friends">Friends</button>
+            <button class="tog" data-occ="Staying In">Chill Day</button>
+            <button class="tog" data-occ="Night Out">Night Out</button>
+          </div>
+        </div>
+        <div class="form-sec">
+          <span class="form-sec-label">The Mood</span>
+          <div class="mood-grid">
+            <button class="tog active" data-mood="old-money">Old Money</button>
+            <button class="tog" data-mood="casual">Effortless</button>
+            <button class="tog" data-mood="evening">Dressed Up</button>
+            <button class="tog" data-mood="surprise">Surprise Me</button>
+          </div>
+        </div>
+        <div class="form-sec">
+          <span class="form-sec-label">The Weather</span>
+          <select class="gen-select" id="weatherSel">
+            <option>Warm &amp; sunny</option>
+            <option>Cool &amp; breezy</option>
+            <option>Cold</option>
+            <option>Rainy</option>
+          </select>
+        </div>
+        <button class="gen-btn" id="genBtn">Generate My Outfit</button>
+      </div>
+
+      <!-- Result -->
+      <div id="genResult">
+        <div class="gen-empty" id="genEmpty">
+          <div class="gen-empty-title">Your look awaits.</div>
+          <p>Select an occasion &amp; mood<br>then let the archive dress you.</p>
+        </div>
+        <div class="outfit-card" id="outfitCard" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== WEEKLY =================== -->
+<div class="page" id="weekly">
+  <div class="wrap pt">
+    <div class="sec-head">
+      <div>
+        <h2 class="sec-title">The <em>Week</em></h2>
+        <div class="divider"></div>
+        <p class="sec-subtitle">Seven days, seven intentions</p>
+      </div>
+    </div>
+
+    <!-- Day planner inputs -->
+    <div class="week-setup reveal">
+      <div class="week-setup-title">What does your week look like?</div>
+      <div class="week-day-inputs" id="weekInputs"></div>
+      <div class="plan-btn">
+        <button class="btn btn-dark" id="planWeekBtn">Plan My Week</button>
+        <button class="btn btn-outline" id="clearWeekBtn">Clear</button>
+      </div>
+    </div>
+
+    <!-- Dramatic progress -->
+    <div class="week-progress-wrap reveal" id="weekProgressWrap" style="display:none;">
+      <div>
+        <div class="week-pct-big" id="weekPctNum">0<span>%</span></div>
+        <div class="week-pct-label">of your week is planned</div>
+      </div>
+      <div class="week-bar-track">
+        <div class="week-bar-fill" id="weekBarFill"></div>
+      </div>
+    </div>
+
+    <!-- Week grid -->
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+</div>
+
+<!-- =================== ESSENTIALS =================== -->
+<div class="page" id="essentials">
+  <div class="wrap pt">
+    <div class="sec-head">
+      <div>
+        <h2 class="sec-title">The <em>Essentials</em></h2>
+        <div class="divider"></div>
+        <p class="sec-subtitle">The things that complete every look</p>
+      </div>
+      <button class="btn btn-dark" onclick="openModal('essModal')">Add an Essential</button>
+    </div>
+    <button class="btn btn-dark sec-head-mob-btn" onclick="openModal('essModal')">Add an Essential</button>
+
+    <!-- Must-Have Carousel -->
+    <div class="must-haves-section reveal">
+      <h3 class="must-haves-title">Wardrobe Must-Haves</h3>
+      <p class="must-haves-sub">The capsule every archive needs — mark what you own</p>
+      <div class="carousel-wrap">
+        <div class="carousel" id="mustCarousel"></div>
+        <div class="car-nav">
+          <button class="car-arrow" onclick="scrollCar(-1)">&#8592;</button>
+          <button class="car-arrow" onclick="scrollCar(1)">&#8594;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Essentials -->
+    <div class="ess-tabs">
+      <button class="etab active" data-etab="bags">Bags</button>
+      <button class="etab" data-etab="shoes">Shoes</button>
+      <button class="etab" data-etab="accessories">Adornments</button>
+      <button class="etab" data-etab="scents">Scents</button>
+    </div>
+    <div class="ess-grid" id="essGrid"></div>
+  </div>
+</div>
+
+<!-- =================== ADD ITEM MODAL =================== -->
+<div class="modal-bg" id="addModal">
+  <div class="modal corner-wrap">
+    <div class="corners"><span></span><span></span><span></span><span></span></div>
+    <button class="modal-close" onclick="closeModal('addModal')">&#215;</button>
+    <div class="modal-title">Add a Piece</div>
+    <div class="modal-sub">Catalogue a new garment</div>
+    <div class="upload-zone" id="addUploadZone">
+      <input type="file" accept="image/*" id="addImgInput" onchange="previewImg('addImgInput','addPreview','addUploadPrompt')">
+      <img class="upload-preview-img" id="addPreview">
+      <div id="addUploadPrompt">
+        <div class="upload-icon-big">&#8593;</div>
+        <div class="upload-text">Upload image</div>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Name the Piece</label>
+      <input type="text" class="field-input" id="addName" placeholder="e.g. The Ivory Blazer">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">Category</label>
+        <select class="field-select" id="addCat">
+          <option value="old-money">Old Money</option>
+          <option value="casual">Effortless Casual</option>
+          <option value="evening">Evening Silhouette</option>
+          <option value="day-dress">Day Dress</option>
+          <option value="outerwear">Outerwear</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Status</label>
+        <select class="field-select" id="addStatus">
+          <option value="owned">In My Possession</option>
+          <option value="arriving">Arriving Soon</option>
+          <option value="wishlist">Wish List</option>
+          <option value="vault">The Vault</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-dark" style="width:100%;justify-content:center;" onclick="addItem()">Add to Archive</button>
+  </div>
+</div>
+
+<!-- =================== ADD ESSENTIAL MODAL =================== -->
+<div class="modal-bg" id="essModal">
+  <div class="modal corner-wrap">
+    <div class="corners"><span></span><span></span><span></span><span></span></div>
+    <button class="modal-close" onclick="closeModal('essModal')">&#215;</button>
+    <div class="modal-title">Add an Essential</div>
+    <div class="modal-sub">A bag, a shoe, a scent, a sacred thing</div>
+    <div class="upload-zone">
+      <input type="file" accept="image/*" id="essImgInput" onchange="previewImg('essImgInput','essPreview','essUploadPrompt')">
+      <img class="upload-preview-img" id="essPreview">
+      <div id="essUploadPrompt">
+        <div class="upload-icon-big">&#8593;</div>
+        <div class="upload-text">Upload image</div>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Name</label>
+      <input type="text" class="field-input" id="essName" placeholder="e.g. The Lady Tote">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">Type</label>
+        <select class="field-select" id="essType">
+          <option value="bags">Bag</option>
+          <option value="shoes">Shoes</option>
+          <option value="accessories">Adornment</option>
+          <option value="scents">Scent</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Notes (optional)</label>
+        <input type="text" class="field-input" id="essNotes" placeholder="e.g. Evenings only">
+      </div>
+    </div>
+    <button class="btn btn-dark" style="width:100%;justify-content:center;" onclick="addEssential()">Add to Archive</button>
+  </div>
+</div>
+
+<script>
+/* =============================================
+   STATE
+============================================= */
+let items     = JSON.parse(localStorage.getItem('fancy-items') || '[]');
+let essentials= JSON.parse(localStorage.getItem('fancy-ess')   || '[]');
+let weekPlan  = JSON.parse(localStorage.getItem('fancy-week')  || '{}');
+let mustStatus= JSON.parse(localStorage.getItem('fancy-must')  || '{}');
+
+let currentTab  = 'owned';
+let currentCat  = 'all';
+let currentETab = 'bags';
+let selOcc      = 'Work / Office';
+let selMood     = 'old-money';
+
+/* Seed items if first visit */
+if (!items.length) {
+  items = [
+    {id:1, name:'The Ivory Blazer',  cat:'old-money', status:'owned',    img:null},
+    {id:2, name:'Cashmere Column',   cat:'old-money', status:'owned',    img:null},
+    {id:3, name:'The Silk Slip',     cat:'evening',   status:'owned',    img:null},
+    {id:4, name:'Cream Trousers',    cat:'old-money', status:'owned',    img:null},
+    {id:5, name:'Scarlet Shift',     cat:'evening',   status:'owned',    img:null},
+    {id:6, name:'Linen Day Set',     cat:'casual',    status:'arriving', img:null},
+    {id:7, name:'The Trench',        cat:'outerwear', status:'wishlist', img:null},
+    {id:8, name:'Black Wrap Dress',  cat:'evening',   status:'owned',    img:null},
+    {id:9, name:'Floral Tea Dress',  cat:'day-dress', status:'wishlist', img:null},
+  ];
+  save();
+}
+if (!essentials.length) {
+  essentials = [
+    {id:1, name:'Lady Tote',        type:'bags',        notes:'Everyday staple', img:null},
+    {id:2, name:'Evening Clutch',   type:'bags',        notes:'Evenings only',   img:null},
+    {id:3, name:'Mary Jane Heels',  type:'shoes',       notes:'Old money staple',img:null},
+    {id:4, name:'Gold Stacked Rings',type:'accessories',notes:'Every day',       img:null},
+    {id:5, name:'Black Velvet Ribbon',type:'accessories',notes:'Choker or band', img:null},
+    {id:6, name:"Jour d'Hermes",    type:'scents',      notes:'Daytime, floral', img:null},
+  ];
+  saveEss();
+}
+
+function save()    { localStorage.setItem('fancy-items', JSON.stringify(items)); }
+function saveEss() { localStorage.setItem('fancy-ess',   JSON.stringify(essentials)); }
+function saveWeek(){ localStorage.setItem('fancy-week',  JSON.stringify(weekPlan)); }
+function saveMust(){ localStorage.setItem('fancy-must',  JSON.stringify(mustStatus)); }
+
+/* =============================================
+   PRELOADER
+============================================= */
+(function(){
+  const num = document.getElementById('preNum');
+  const bar = document.getElementById('preBar');
+  const pre = document.getElementById('preloader');
+  let pct = 0;
+  const iv = setInterval(()=>{
+    pct += Math.random()*18;
+    if(pct>100) pct=100;
+    const n = Math.floor(pct);
+    num.innerHTML = n+'<sup>%</sup>';
+    bar.style.width = pct+'%';
+    if(pct===100){
+      clearInterval(iv);
+      setTimeout(()=>{
+        pre.classList.add('hide');
+        setTimeout(()=>pre.style.display='none',900);
+        updateStats();
+        initReveal();
+      },400);
+    }
+  },60);
+})();
+
+/* =============================================
+   CURSOR
+============================================= */
+const cur = document.getElementById('cur');
+const curTrail = document.getElementById('cur-trail');
+if(cur) {
+  document.addEventListener('mousemove', e=>{
+    cur.style.left = e.clientX+'px';
+    cur.style.top  = e.clientY+'px';
+    requestAnimationFrame(()=>{
+      curTrail.style.left = e.clientX+'px';
+      curTrail.style.top  = e.clientY+'px';
+    });
+  });
+}
+
+/* =============================================
+   HAMBURGER
+============================================= */
+const ham    = document.getElementById('ham');
+const mobNav = document.getElementById('mobNav');
+ham.addEventListener('click',()=>{
+  ham.classList.toggle('open');
+  mobNav.classList.toggle('open');
+});
+
+/* =============================================
+   NAVIGATION
+============================================= */
+const pages = ['home','wardrobe','generator','weekly','essentials'];
+
+function navigate(page){
+  // hide all
+  document.querySelectorAll('.page').forEach(p=>{
+    p.classList.remove('active');
+    p.style.display='none';
+  });
+  // show target
+  const el = document.getElementById(page);
+  el.style.display='block';
+  requestAnimationFrame(()=> el.classList.add('active'));
+
+  // update nav
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.page===page);
+  });
+
+  // close mob nav
+  ham.classList.remove('open');
+  mobNav.classList.remove('open');
+
+  // page-specific actions
+  if(page==='wardrobe')   renderGrid();
+  if(page==='weekly')     renderWeek();
+  if(page==='essentials') { renderEss(); renderMustHaves(); }
+  if(page==='home')       updateStats();
+
+  window.scrollTo({top:0, behavior:'smooth'});
+  initReveal();
+}
+
+// Wire nav buttons
+document.querySelectorAll('.nav-btn, .btn[data-page]').forEach(b=>{
+  b.addEventListener('click',()=> navigate(b.dataset.page));
+});
+document.querySelectorAll('.hero-ctas .btn').forEach(b=>{
+  b.addEventListener('click',()=> navigate(b.dataset.page));
+});
+
+/* =============================================
+   SCROLL REVEAL
+============================================= */
+function initReveal(){
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+  },{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+}
+
+/* =============================================
+   STATS
+============================================= */
+function updateStats(){
+  const owned = items.filter(i=>i.status==='owned').length;
+  const wish  = items.filter(i=>i.status==='wishlist').length;
+  const planned = Object.keys(weekPlan).filter(d=>weekPlan[d]).length;
+
+  animateNum('stat-owned', owned);
+  animateNum('stat-wish',  wish);
+  animateNum('stat-essentials', essentials.length);
+  animateNum('stat-week',  planned);
+}
+
+function animateNum(id, target){
+  const el = document.getElementById(id);
+  if(!el) return;
+  let n=0; const step = Math.ceil(target/20);
+  const iv = setInterval(()=>{
+    n = Math.min(n+step, target);
+    el.textContent = n;
+    if(n>=target) clearInterval(iv);
+  },40);
+}
+
+/* =============================================
+   WARDROBE
+============================================= */
+const catIcons = {
+  'old-money':'🧥','casual':'👕','evening':'👗',
+  'day-dress':'🌸','outerwear':'🧣'
+};
+const catLabel = {
+  'old-money':'Old Money','casual':'Effortless Casual','evening':'Evening Silhouette',
+  'day-dress':'Day Dress','outerwear':'Outerwear'
+};
+
+function renderGrid(){
+  // update counts
+  ['owned','arriving','wishlist','vault'].forEach(s=>{
+    const el = document.getElementById('count-'+s);
+    if(el) el.textContent = items.filter(i=>i.status===s).length;
+  });
+
+  const grid = document.getElementById('clothesGrid');
+  let filtered = items.filter(i=>i.status===currentTab);
+  if(currentCat!=='all') filtered = filtered.filter(i=>i.cat===currentCat);
+
+  let html = filtered.map((item,idx)=>`
+    <div class="c-card" style="animation-delay:${idx*0.05}s">
+      <div class="c-card-img">
+        ${item.img
+          ? `<img src="${item.img}" alt="${item.name}">`
+          : `<div class="c-card-ph"><div class="c-card-ph-icon">${catIcons[item.cat]||'👗'}</div><span>No image</span></div>`
+        }
+        <div class="c-card-overlay">
+          <button class="ov-view" onclick="toast('Viewing: ${item.name}')">View</button>
+          <button class="ov-move" onclick="moveItem(${item.id})">Move</button>
+        </div>
+      </div>
+      <div class="c-status-dot dot-${item.status}"></div>
+      <div class="c-card-body">
+        <div class="c-card-name">${item.name}</div>
+        <div class="c-card-cat">${catLabel[item.cat]||item.cat}</div>
+      </div>
+    </div>
+  `).join('');
+
+  html += `
+    <button class="c-card-add" onclick="openModal('addModal')">
+      <div class="c-card-add-icon">+</div>
+      <span>Add a piece</span>
+    </button>
+  `;
+  grid.innerHTML = html;
+}
+
+// Tab switches
+document.querySelectorAll('.stab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab = btn.dataset.tab;
+    renderGrid();
+  });
+});
+
+// Category filters
+document.querySelectorAll('.cat-pill').forEach(pill=>{
+  pill.addEventListener('click',()=>{
+    document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
+    pill.classList.add('active');
+    currentCat = pill.dataset.cat;
+    renderGrid();
+  });
+});
+
+function moveItem(id){
+  const item = items.find(i=>i.id===id);
+  if(!item) return;
+  const states = ['owned','arriving','wishlist','vault'];
+  const next = states[(states.indexOf(item.status)+1)%states.length];
+  item.status = next;
+  save(); renderGrid();
+  toast(`${item.name} moved to ${next}`);
+}
+
+/* =============================================
+   ADD ITEM
+============================================= */
+function addItem(){
+  const name   = document.getElementById('addName').value.trim();
+  const cat    = document.getElementById('addCat').value;
+  const status = document.getElementById('addStatus').value;
+  const prev   = document.getElementById('addPreview');
+  if(!name){ toast('Please name the piece'); return; }
+  items.push({ id:Date.now(), name, cat, status, img: prev.style.display!='none'?prev.src:null });
+  save(); closeModal('addModal');
+  document.getElementById('addName').value='';
+  prev.style.display='none';
+  document.getElementById('addUploadPrompt').style.display='block';
+  renderGrid(); updateStats();
+  toast(`${name} added to the archive`);
+}
+
+/* =============================================
+   GENERATOR
+============================================= */
+const outfitData = {
+  'old-money': {
+    pieces: [
+      {type:'Top',    name:'Cashmere Knit'},
+      {type:'Bottom', name:'Tailored Trousers'},
+      {type:'Layer',  name:'The Ivory Blazer'},
+      {type:'Shoes',  name:'Pointed-Toe Loafers'},
+    ],
+    notes: [
+      "Quiet power. The room will notice before you've said a word.",
+      "Old money never shouts. It simply arrives.",
+      "Restraint is the most radical form of glamour.",
+    ]
+  },
+  'casual': {
+    pieces: [
+      {type:'Top',    name:'Linen Button-Down'},
+      {type:'Bottom', name:'Straight-Leg Denim'},
+      {type:'Layer',  name:'Oversized Blazer'},
+      {type:'Shoes',  name:'Clean White Sneakers'},
+    ],
+    notes: [
+      "Effortless is not an accident. It is a decision.",
+      "The best casual looks take the most thought.",
+      "Ease, edited. Not lazy — intentional.",
+    ]
+  },
+  'evening': {
+    pieces: [
+      {type:'Dress',  name:'The Silk Slip'},
+      {type:'Layer',  name:'Evening Wrap'},
+      {type:'Bag',    name:'Evening Clutch'},
+      {type:'Shoes',  name:'Strappy Heels'},
+    ],
+    notes: [
+      "You are the occasion. Dress accordingly.",
+      "Let the outfit do the talking. Confident. Unforgettable.",
+      "Scarlet or black. Either way — memorable.",
+    ]
+  }
+};
+
+document.querySelectorAll('.tog[data-occ]').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tog[data-occ]').forEach(b=>b.classList.remove('active'));
+    t.classList.add('active');
+    selOcc = t.dataset.occ;
+  });
+});
+document.querySelectorAll('.tog[data-mood]').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tog[data-mood]').forEach(b=>b.classList.remove('active'));
+    t.classList.add('active');
+    selMood = t.dataset.mood;
+  });
+});
+
+document.getElementById('genBtn').addEventListener('click', generateOutfit);
+
+function generateOutfit(){
+  const btn = document.getElementById('genBtn');
+  btn.textContent = 'Curating...';
+  btn.disabled = true;
+  setTimeout(()=>{
+    btn.textContent = 'Generate My Outfit';
+    btn.disabled = false;
+    doGenerate();
+  }, 700);
+}
+
+function doGenerate(){
+  let mood = selMood;
+  if(mood==='surprise'){
+    const m=['old-money','casual','evening'];
+    mood = m[Math.floor(Math.random()*m.length)];
+  }
+  const data = outfitData[mood] || outfitData['old-money'];
+  const note = data.notes[Math.floor(Math.random()*data.notes.length)];
+  const today = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+
+  // check if we have real items matching
+  const realPieces = data.pieces.map(p=>{
+    const match = items.find(i=>i.status==='owned' && i.cat===mood) || null;
+    return { ...p, img: match?.img || null, realName: match?.name || p.name };
+  });
+
+  const piecesHtml = realPieces.map((p,i)=>`
+    <div class="outfit-piece-card" style="animation-delay:${i*0.08}s">
+      <div class="outfit-piece-img">
+        ${p.img ? `<img src="${p.img}" alt="${p.realName}">` : ['👗','🧥','👠','👜'][i]||'👗'}
+      </div>
+      <div class="outfit-piece-info">
+        <div class="outfit-piece-type">${p.type}</div>
+        <div class="outfit-piece-name">${p.realName}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const card = document.getElementById('outfitCard');
+  card.innerHTML = `
+    <div class="outfit-header">
+      <div class="outfit-date-text">${today}</div>
+      <div class="outfit-tag">${selOcc}</div>
+    </div>
+    <div class="outfit-pieces-grid">${piecesHtml}</div>
+    <div class="outfit-note">"${note}"</div>
+    <div class="outfit-actions">
+      <button class="btn btn-outline" style="color:var(--ivory);border-color:rgba(255,255,255,.15);" onclick="saveToWeek('${selOcc}')">Save to My Week</button>
+      <button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.08);" onclick="generateOutfit()">Regenerate</button>
+    </div>
+  `;
+
+  document.getElementById('genEmpty').style.display='none';
+  card.style.display='block';
+}
+
+function saveToWeek(occ){
+  // find first unplanned day
+  const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const free = days.find(d=>!weekPlan[d]);
+  if(free){
+    const mood = selMood==='surprise' ? 'old-money' : selMood;
+    weekPlan[free] = { occ, pieces: outfitData[mood]?.pieces || outfitData['old-money'].pieces };
+    saveWeek(); updateStats();
+    toast(`Outfit saved to ${free}`);
+  } else {
+    toast('All days are already planned');
+  }
+}
+
+/* =============================================
+   WEEKLY PLANNER
+============================================= */
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const OCCS = [
+  'Rest Day','Work / Office','College','Date Night',
+  'Seeing Friends','Staying In','Night Out','Event'
+];
+
+function buildWeekInputs(){
+  const wrap = document.getElementById('weekInputs');
+  wrap.innerHTML = DAYS.map(day=>`
+    <div class="day-input-cell">
+      <div class="day-input-label">${day}</div>
+      <select class="day-select" id="occ-${day}">
+        <option value="">— Skip —</option>
+        ${OCCS.map(o=>`<option value="${o}" ${weekPlan[day]?.occ===o?'selected':''}>${o}</option>`).join('')}
+      </select>
+    </div>
+  `).join('');
+}
+buildWeekInputs();
+
+document.getElementById('planWeekBtn').addEventListener('click',()=>{
+  DAYS.forEach(day=>{
+    const sel = document.getElementById('occ-'+day);
+    const occ = sel?.value;
+    if(occ){
+      const moods=['old-money','casual','evening','old-money','casual','old-money','evening'];
+      const mood = moods[DAYS.indexOf(day)];
+      weekPlan[day] = { occ, pieces: outfitData[mood].pieces };
+    } else {
+      delete weekPlan[day];
+    }
+  });
+  saveWeek(); renderWeek(); updateStats();
+  toast('Your week is planned');
+});
+
+document.getElementById('clearWeekBtn').addEventListener('click',()=>{
+  weekPlan={};
+  saveWeek(); renderWeek(); updateStats();
+  buildWeekInputs();
+  toast('Week cleared');
+});
+
+function renderWeek(){
+  const planned = DAYS.filter(d=>weekPlan[d]).length;
+  const pct = Math.round((planned/7)*100);
+
+  // show/hide progress
+  const pw = document.getElementById('weekProgressWrap');
+  if(planned>0){
+    pw.style.display='flex';
+    requestAnimationFrame(()=>{
+      document.getElementById('weekBarFill').style.width = pct+'%';
+    });
+    // animate number
+    const el = document.getElementById('weekPctNum');
+    let n=0;
+    const iv = setInterval(()=>{
+      n = Math.min(n+4,pct);
+      el.innerHTML = n+'<span>%</span>';
+      if(n>=pct) clearInterval(iv);
+    },30);
+  } else {
+    pw.style.display='none';
+  }
+
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = DAYS.map(day=>{
+    const plan = weekPlan[day];
+    if(plan){
+      return `
+        <div class="day-card has-plan">
+          <div class="day-card-name">${day}</div>
+          <div class="day-card-occ">${plan.occ}</div>
+          <div>
+            ${plan.pieces.slice(0,3).map(p=>`<div class="day-piece-item">${p.type}: ${p.name}</div>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+    return `<div class="day-card-empty">${day}<br><span style="font-size:8px;opacity:.4;display:block;margin-top:6px;letter-spacing:.2em;text-transform:uppercase;">Unplanned</span></div>`;
+  }).join('');
+}
+
+/* =============================================
+   ESSENTIALS — MUST HAVES
+============================================= */
+const mustHaves = [
+  {id:'mh1', name:'The Trench Coat',     desc:'The eternal outerwear',         icon:'🧥'},
+  {id:'mh2', name:'White Button Shirt',  desc:'Crisp, clean, always right',    icon:'👕'},
+  {id:'mh3', name:'Black Tailored Trousers', desc:'Day to night effortlessly', icon:'👖'},
+  {id:'mh4', name:'Silk Slip Dress',     desc:'The old money evening staple',  icon:'👗'},
+  {id:'mh5', name:'Cashmere Knit',       desc:'Quiet luxury essential',        icon:'🧶'},
+  {id:'mh6', name:'Pointed-Toe Heels',   desc:'Elevate any outfit',            icon:'👠'},
+  {id:'mh7', name:'Structured Bag',      desc:'Arm candy, every day',          icon:'👜'},
+  {id:'mh8', name:'Gold Jewellery Set',  desc:'Delicate, stackable, always on',icon:'💛'},
+  {id:'mh9', name:'Wide-Leg Trousers',   desc:'The Clueless power move',       icon:'🌿'},
+  {id:'mh10',name:'Little Black Dress',  desc:'The archive non-negotiable',    icon:'🖤'},
+  {id:'mh11',name:'Statement Coat',      desc:'Let it speak before you do',    icon:'🧣'},
+  {id:'mh12',name:'A Signature Scent',   desc:'The final detail',              icon:'🌸'},
+];
+
+function renderMustHaves(){
+  const car = document.getElementById('mustCarousel');
+  car.innerHTML = mustHaves.map(m=>{
+    const st = mustStatus[m.id] || 'none';
+    return `
+      <div class="must-card">
+        <div class="must-card-img">${m.icon}</div>
+        <div class="must-card-name">${m.name}</div>
+        <div class="must-card-desc">${m.desc}</div>
+        <div class="must-card-status">
+          <button class="mstatus-btn ${st==='own'?'active-own':''}" onclick="setMust('${m.id}','own',this)">I Own It</button>
+          <button class="mstatus-btn ${st==='want'?'active-want':''}" onclick="setMust('${m.id}','want',this)">I Want It</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function setMust(id, state, btn){
+  const current = mustStatus[id];
+  const isToggle = (state==='own' && current==='own') || (state==='want' && current==='want');
+  mustStatus[id] = isToggle ? 'none' : state;
+  saveMust();
+  // re-render that card
+  const btns = btn.closest('.must-card-status').querySelectorAll('.mstatus-btn');
+  btns[0].className = `mstatus-btn${mustStatus[id]==='own'?' active-own':''}`;
+  btns[1].className = `mstatus-btn${mustStatus[id]==='want'?' active-want':''}`;
+}
+
+function scrollCar(dir){
+  const car = document.getElementById('mustCarousel');
+  car.scrollBy({ left: dir * 220, behavior:'smooth' });
+}
+
+/* =============================================
+   MY ESSENTIALS
+============================================= */
+const essIcons = { bags:'👜', shoes:'👠', accessories:'💍', scents:'🌸' };
+
+function renderEss(){
+  const grid = document.getElementById('essGrid');
+  const filtered = essentials.filter(e=>e.type===currentETab);
+  let html = filtered.map((e,i)=>`
+    <div class="ess-card${e.type==='scents'?' scent-card':''}" style="animation-delay:${i*0.05}s">
+      ${e.img
+        ? `<img class="ess-card-img" src="${e.img}" alt="${e.name}">`
+        : `<div class="ess-card-icon">${essIcons[e.type]||'✨'}</div>`
+      }
+      <div class="ess-card-name">${e.name}</div>
+      ${e.notes?`<div class="ess-card-note">${e.notes}</div>`:''}
+    </div>
+  `).join('');
+  html += `
+    <button class="ess-card-add" onclick="openModal('essModal')">
+      <span style="font-size:22px;color:var(--blush)">+</span>
+      <span>Add one</span>
+    </button>
+  `;
+  grid.innerHTML = html;
+}
+
+document.querySelectorAll('.etab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));
+    t.classList.add('active');
+    currentETab = t.dataset.etab;
+    renderEss();
+  });
+});
+
+function addEssential(){
+  const name  = document.getElementById('essName').value.trim();
+  const type  = document.getElementById('essType').value;
+  const notes = document.getElementById('essNotes').value.trim();
+  const prev  = document.getElementById('essPreview');
+  if(!name){ toast('Please name the essential'); return; }
+  essentials.push({ id:Date.now(), name, type, notes, img: prev.style.display!='none'?prev.src:null });
+  saveEss(); closeModal('essModal');
+  document.getElementById('essName').value='';
+  document.getElementById('essNotes').value='';
+  prev.style.display='none';
+  document.getElementById('essUploadPrompt').style.display='block';
+  renderEss(); updateStats();
+  toast(`${name} added`);
+}
+
+/* =============================================
+   MODALS
+============================================= */
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+
+/* =============================================
+   IMAGE PREVIEW
+============================================= */
+function previewImg(inputId, previewId, promptId){
+  const input = document.getElementById(inputId);
+  const preview = document.getElementById(previewId);
+  const prompt = document.getElementById(promptId);
+  if(!input.files[0]) return;
+  const r = new FileReader();
+  r.onload = e=>{
+    preview.src = e.target.result;
+    preview.style.display='block';
+    if(prompt) prompt.style.display='none';
+  };
+  r.readAsDataURL(input.files[0]);
+}
+
+/* =============================================
+   TOAST
+============================================= */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+/* =============================================
+   INIT PAGE DISPLAY
+============================================= */
+// Ensure only first page is shown
+document.querySelectorAll('.page').forEach(p=>{
+  if(!p.classList.contains('active')) p.style.display='none';
+});
+</script>
+</body>
+</html>
