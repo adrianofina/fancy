@@ -2,115 +2,339 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Fancy — Finna's personal fashion archive.">
   <title>Fancy</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:opsz,wght@9..40,200;9..40,300;9..40,400&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
+  <!-- INTRO LOADER -->
   <div id="intro">
-  <div class="intro-inner">
-    <div class="intro-title">FANCY</div>
-
-    <div class="intro-bar">
-      <div class="intro-progress" id="introProgress"></div>
+    <div class="intro-corners">
+      <span></span><span></span><span></span><span></span>
     </div>
-
-  </div>
-</div>
-
-
-<div id="app" style="display:none;">
- 
-<div class="atmosphere">
-  <div class="orb o1"></div>
-  <div class="orb o2"></div>
-  <div class="orb o3"></div>
-</div>
-
-<div class="top-bar">
-  <div class="brand">
-    <span class="brand-main">FANCY</span>
-    <span class="brand-sub">archive</span>
-  </div>
-</div>
-
-<section id="atelier" class="hero split">
-  <div class="hero-left">
-    <h1>Dressed<br>by Design</h1>
-    <p>
-      A personal system where your wardrobe becomes
-      intentional, not accidental.
-    </p>
-
-    <div class="hero-actions">
-      <button onclick="scrollToSection('wardrobe')">Enter Wardrobe</button>
-      <button onclick="scrollToSection('generator')">Dress Me</button>
+    <div class="intro-inner">
+      <div class="intro-wordmark">FANCY</div>
+      <div class="intro-tagline">Welcome to Finna's Wardrobe</div>
+      <div class="intro-bar-wrap">
+        <div class="intro-bar" id="introBar"></div>
+      </div>
+     <!--<div class="intro-pct" id="introPct">0</div>--> 
     </div>
   </div>
 
-  <div class="hero-right">
-    <div class="hero-block"></div>
+  <!-- APP -->
+  <div id="app">
+
+    <div class="atmosphere" aria-hidden="true">
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="orb o3"></div>
+    </div>
+
+    <!-- TOP BAR -->
+    <header class="top-bar" id="topBar">
+      <div class="brand">
+        <span class="brand-main">FANCY</span>
+        <span class="brand-dot">·</span>
+        <span class="brand-sub">archive</span>
+      </div>
+      <nav class="nav-links" id="navLinks">
+        <a href="#atelier"    class="nav-link active" data-section="atelier">Atelier</a>
+        <a href="#wardrobe"   class="nav-link"        data-section="wardrobe">Wardrobe</a>
+        <a href="#generator"  class="nav-link"        data-section="generator">Dress Me</a>
+        <a href="#week"       class="nav-link"        data-section="week">The Week</a>
+        <a href="#essentials" class="nav-link"        data-section="essentials">Essentials</a>
+      </nav>
+      <button class="ham" id="ham" aria-label="menu">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+
+    <div class="mob-drawer" id="mobDrawer">
+      <a href="#atelier"    class="mob-link">Atelier</a>
+      <a href="#wardrobe"   class="mob-link">Wardrobe</a>
+      <a href="#generator"  class="mob-link">Dress Me</a>
+      <a href="#week"       class="mob-link">The Week</a>
+      <a href="#essentials" class="mob-link">Essentials</a>
+    </div>
+
+    <!-- 1. ATELIER -->
+    <section id="atelier" class="section">
+      <div class="hero-split">
+        <div class="hero-left">
+          <div class="hero-eyebrow">
+            <span class="eyebrow-line"></span>
+            <span class="eyebrow-text">A private system of memory</span>
+          </div>
+          <h1 class="hero-title"> Nothing here is<br><em>accidental</em>
+         </h1>
+          <p class="hero-body">
+           Every piece exists because it was chosen. Every choice becomes a pattern. 
+           And patterns… eventually become identity.
+            </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" data-scroll="wardrobe">Enter the Archive</button>
+            <button class="btn btn-ghost"   data-scroll="generator">Construct a Look</button>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="stats-cluster">
+            <div class="stat-card sc-large">
+              <div class="stat-num" id="stat-owned">0</div>
+              <div class="stat-label">In Possession</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-wish">0</div>
+              <div class="stat-label">On Desire</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-ess">0</div>
+              <div class="stat-label">Essentials</div>
+            </div>
+            <div class="stat-card sc-accent">
+              <div class="stat-num" id="stat-week">0</div>
+              <div class="stat-label">Days Planned</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. WARDROBE -->
+    <section id="wardrobe" class="section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">The <em>Wardrobe</em></h2>
+          <p class="section-sub">All pieces, catalogued.</p>
+        </div>
+        <button class="btn btn-primary" id="openAddItem">Archive a Piece</button>
+      </div>
+
+      <div class="tab-row" id="statusTabs">
+        <button class="tab active" data-status="owned">In Possession <span class="tab-count" id="cnt-owned">0</span></button>
+        <button class="tab" data-status="arriving">Arriving Soon <span class="tab-count" id="cnt-arriving">0</span></button>
+        <button class="tab" data-status="desire">On Desire <span class="tab-count" id="cnt-desire">0</span></button>
+        <button class="tab" data-status="vault">The Vault <span class="tab-count" id="cnt-vault">0</span></button>
+      </div>
+
+      <div class="filter-row" id="catFilters">
+        <button class="pill active" data-cat="all">All</button>
+        <button class="pill" data-cat="old-money">Old Money</button>
+        <button class="pill" data-cat="casual">Effortless Casual</button>
+        <button class="pill" data-cat="evening">Evening Silhouette</button>
+        <button class="pill" data-cat="day-dress">Day Dress</button>
+        <button class="pill" data-cat="outerwear">Outerwear</button>
+      </div>
+
+      <div class="wardrobe-grid" id="wardrobeGrid"></div>
+    </section>
+
+    <!-- 3. DRESS ME -->
+    <section id="generator" class="section section-dark">
+  <div class="section-head invert">
+    <div>
+      <h2 class="section-title">Styling <em>Moment</em></h2>
+      <p class="section-sub">What does today feel like?</p>
+    </div>
   </div>
-<!--<div class="hero-right">
-  <div class="hero-stack">
-    <div class="hero-card large">Scarlet Discipline</div>
-    <div class="hero-card">Quiet Power</div>
-    <div class="hero-card">Soft Control</div>
+
+  <div class="gen-layout">
+
+    <div class="gen-panel">
+
+      <div class="gen-canvas">
+        <div class="gen-question">
+          What are you becoming today?
+        </div>
+
+        <input class="gen-input"
+          id="genInput"
+          placeholder="Work, soft, chaotic, romantic, invisible, focused..." />
+      </div>
+
+      <div class="gen-chips">
+        <span>Old money</span>
+        <span>Effortless</span>
+        <span>Soft power</span>
+        <span>Sharp</span>
+        <span>Romantic</span>
+        <span>Minimal</span>
+      </div>
+
+      <button class="btn btn-light gen-btn" id="genBtn">
+        Interpret this
+      </button>
+
+    </div>
+
+    <div class="gen-result" id="genResult">
+      <div class="gen-placeholder">
+        <div class="gen-ph-title">Your look will appear here.</div>
+        <div class="gen-ph-sub">A composition of mood and intention.</div>
+      </div>
+    </div>
+
   </div>
-  </div> -->
-
 </section>
 
-<section id="wardrobe">
-  <h2>Wardrobe</h2>
-  <div id="wardrobeGrid"></div>
-  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
-  <button onclick="setCategory('all')">All</button>
-  <button onclick="setCategory('old-money')">Old Money</button>
-  <button onclick="setCategory('casual')">Casual</button>
-  <button onclick="setCategory('evening')">Evening</button>
-</div>
+    <!-- 4. THE WEEK -->
+    <section id="week" class="section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">The <em>Week</em></h2>
+          <p class="section-sub">Seven days, seven intentions.</p>
+        </div>
+      </div>
 
-<button onclick="addItem()">Add Piece</button>
-<div style="margin-top:20px; padding:20px; border:1px dashed #aaa;"
-     ondragover="allowDrop(event)"
-     ondrop="dropToWishlist()">
-  Drop here → Wishlist
-</div>
-</section>
+      <div class="week-config" id="weekConfig">
+        <div class="week-config-title">What does your week look like?</div>
+        <div class="week-config-sub">Set each day, then I will build your outfits.</div>
+        <div class="week-day-grid" id="weekDayGrid"></div>
+        <div class="week-config-actions">
+          <button class="btn btn-primary" id="planWeekBtn">Plan My Week</button>
+          <button class="btn btn-ghost"   id="workweekBtn">Work Week (Mon–Fri)</button>
+          <button class="btn btn-ghost"   id="clearWeekBtn">Clear</button>
+        </div>
+      </div>
 
-<section id="generator">
-  <h2>Dress Me</h2>
+      <div class="week-drama" id="weekDrama" style="display:none;">
+        <div class="drama-pct" id="dramaPct">0<span>%</span></div>
+        <div class="drama-label">of your week is planned</div>
+        <div class="drama-bar-wrap">
+          <div class="drama-bar" id="dramaBar"></div>
+        </div>
+      </div>
 
-  <button onclick="generateOutfit()">Generate Outfit</button>
+      <div class="week-output-grid" id="weekOutput"></div>
+    </section>
 
-  <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-  <button onclick="setMood('old-money')">Old Money</button>
-  <button onclick="setMood('casual')">Casual</button>
-  <button onclick="setMood('evening')">Evening</button>
-  <button onclick="setMood('neutral')">Neutral</button>
-</div>
+    <!-- 5. ESSENTIALS -->
+    <section id="essentials" class="section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">The <em>Essentials</em></h2>
+          <p class="section-sub">The things that complete every look.</p>
+        </div>
+        <button class="btn btn-primary" id="openAddEss">Add an Essential</button>
+      </div>
 
-  <div id="outfitResult"></div>
-  <div id="history"></div>
-</section>
+      <div class="must-wrap">
+        <div class="must-head">
+          <div>
+            <h3 class="must-title">Capsule Must-Haves</h3>
+            <p class="must-sub">The archive non-negotiables. Mark what you own.</p>
+          </div>
+          <div class="must-nav">
+            <button class="must-arrow" id="carLeft">&#8592;</button>
+            <button class="must-arrow" id="carRight">&#8594;</button>
+          </div>
+        </div>
+        <div class="carousel" id="mustCarousel"></div>
+      </div>
 
-<section id="week">
- <div class="week-flow">
-  <button onclick="planWeek()">Plan My Week</button>
-  <div id="weekResult"></div>
-</div>
-<div id="week"></div>
-</section>
+      <div class="tab-row" id="essTabs">
+        <button class="tab active" data-etab="bags">Bags</button>
+        <button class="tab" data-etab="shoes">Shoes</button>
+        <button class="tab" data-etab="accessories">Adornments</button>
+        <button class="tab" data-etab="scents">Scents</button>
+      </div>
 
-<section id="essentials">
-  <h2>Essentials</h2>
-  <p>Accessories, shoes, scents.</p>
-</section>
-</div>
+      <div class="essentials-grid" id="essGrid"></div>
+    </section>
 
-<script src="js/app.js"></script>
-<script src="js/loader.js"></script>
+  </div><!-- /#app -->
+
+  <!-- MODAL: Add Item -->
+  <div class="modal-bg" id="addItemModal">
+    <div class="modal">
+      <button class="modal-close" data-close="addItemModal">&#215;</button>
+      <div class="modal-title">Archive a Piece</div>
+      <div class="modal-sub">Add a new garment to your collection</div>
+      <div class="upload-zone" id="addUploadZone">
+        <input type="file" accept="image/*" id="addImgFile">
+        <img id="addImgPreview" class="upload-preview" alt="">
+        <div class="upload-prompt" id="addUploadPrompt">
+          <div class="upload-arrow">&#8593;</div>
+          <div class="upload-hint">Upload image</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Name the piece</label>
+        <input type="text" class="field-input" id="addItemName" placeholder="e.g. The Ivory Blazer">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Category</label>
+          <select class="field-select" id="addItemCat">
+            <option value="old-money">Old Money</option>
+            <option value="casual">Effortless Casual</option>
+            <option value="evening">Evening Silhouette</option>
+            <option value="day-dress">Day Dress</option>
+            <option value="outerwear">Outerwear</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Status</label>
+          <select class="field-select" id="addItemStatus">
+            <option value="owned">In Possession</option>
+            <option value="arriving">Arriving Soon</option>
+            <option value="desire">On Desire</option>
+            <option value="vault">The Vault</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="submitAddItem">Add to Archive</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Essential -->
+  <div class="modal-bg" id="addEssModal">
+    <div class="modal">
+      <button class="modal-close" data-close="addEssModal">&#215;</button>
+      <div class="modal-title">Add an Essential</div>
+      <div class="modal-sub">A bag, a shoe, a scent, a sacred object</div>
+      <div class="upload-zone">
+        <input type="file" accept="image/*" id="essImgFile">
+        <img id="essImgPreview" class="upload-preview" alt="">
+        <div class="upload-prompt" id="essUploadPrompt">
+          <div class="upload-arrow">&#8593;</div>
+          <div class="upload-hint">Upload image</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Name</label>
+        <input type="text" class="field-input" id="essItemName" placeholder="e.g. The Lady Tote">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Type</label>
+          <select class="field-select" id="essItemType">
+            <option value="bags">Bag</option>
+            <option value="shoes">Shoes</option>
+            <option value="accessories">Adornment</option>
+            <option value="scents">Scent</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Notes</label>
+          <input type="text" class="field-input" id="essItemNotes" placeholder="e.g. Evenings only">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="submitAddEss">Add to Archive</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/generator.js"></script>
+  <script src="js/week.js"></script>
+  <script src="js/loader.js"></script>
 </body>
 </html>
+

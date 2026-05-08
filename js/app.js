@@ -1,5 +1,7 @@
-document.addEventListener("DOMContentLoaded", () => {
+// Loader handled by loader.js 
 
+  /**
+   * document.addEventListener("DOMContentLoaded", () => {
   const intro = document.getElementById("intro");
   const fill  = document.getElementById("introFill");
 
@@ -28,3 +30,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 100);
 
 });
+ */
