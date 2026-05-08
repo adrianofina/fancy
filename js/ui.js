@@ -166,19 +166,23 @@ function renderMustHaves() {
   if (!car) return;
   const ms = DB.mustStatus;
   car.innerHTML = MUST_HAVES.map(m => `
-    <div class="must-card">
-      <div class="must-card-art">${m.icon}</div>
-      <div class="must-card-body">
-        <div class="must-card-name">${m.name}</div>
-        <div class="must-card-desc">${m.desc}</div>
-        <div class="must-status-row">
-          <button class="mst-btn ${ms[m.id] === 'own' ? 'own' : ''}"
-            onclick="toggleMust('${m.id}','own',this)">I Own It</button>
-          <button class="mst-btn ${ms[m.id] === 'want' ? 'want' : ''}"
-            onclick="toggleMust('${m.id}','want',this)">I Want It</button>
-        </div>
+      <div class="must-card" data-id="${m.id}">
+    <div class="must-inner">
+      
+      <div class="must-front">
+        <div class="must-card-art">${m.icon}</div>
       </div>
+
+      <div class="must-back">
+        ${
+          m.img
+          ? `<img src="${m.img}" alt="">`
+          : `<div class="must-fallback"></div>`
+        }
+      </div>
+
     </div>
+  </div>
   `).join('');
 }
 
@@ -219,12 +223,75 @@ function renderEssentials() {
   grid.innerHTML = html;
 }
 
-/* Carousel arrows */
-document.getElementById('carLeft').addEventListener('click',  () => {
-  document.getElementById('mustCarousel').scrollBy({ left: -200, behavior: 'smooth' });
+const carousel = document.getElementById('mustCarousel');
+
+let scrollTarget = 0;
+let isAnimating = false;
+
+function smoothScrollTo(target) {
+  if (isAnimating) return;
+  isAnimating = true;
+
+  const start = carousel.scrollLeft;
+  const distance = target - start;
+  let startTime = null;
+
+  function animate(time) {
+    if (!startTime) startTime = time;
+    const progress = Math.min((time - startTime) / 600, 1); // slower = more elegant
+
+    // ease-out cubic
+    const ease = 1 - Math.pow(1 - progress, 3);
+
+    carousel.scrollLeft = start + distance * ease;
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      isAnimating = false;
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+/* document.getElementById('carLeft').addEventListener('click', () => {
+  scrollTarget = carousel.scrollLeft - 260;
+  smoothScrollTo(scrollTarget);
 });
+
 document.getElementById('carRight').addEventListener('click', () => {
-  document.getElementById('mustCarousel').scrollBy({ left: 200, behavior: 'smooth' });
+  scrollTarget = carousel.scrollLeft + 260;
+  smoothScrollTo(scrollTarget);
+}); */
+
+let isDown = false;
+let startX;
+let scrollLeft;
+
+carousel.addEventListener('mousedown', (e) => {
+  isDown = true;
+  drifting = false;
+  startX = e.pageX - carousel.offsetLeft;
+  scrollLeft = carousel.scrollLeft;
+});
+
+carousel.addEventListener('mouseleave', () => {
+  isDown = false;
+  drifting = true;
+});
+
+carousel.addEventListener('mouseup', () => {
+  isDown = false;
+  drifting = true;
+});
+
+carousel.addEventListener('mousemove', (e) => {
+  if (!isDown) return;
+  e.preventDefault();
+  const x = e.pageX - carousel.offsetLeft;
+  const walk = (x - startX) * 1.2;
+  carousel.scrollLeft = scrollLeft - walk;
 });
 
 /* Essential tabs */
@@ -428,3 +495,36 @@ document.getElementById('ham').addEventListener('click', function () {
     });
   }
 })();
+
+let driftX = 0;
+let drifting = true;
+
+function driftLoop() {
+  if (drifting) {
+    driftX += 0.2; // speed (lower = more elegant)
+    carousel.scrollLeft = driftX;
+  }
+  requestAnimationFrame(driftLoop);
+}
+
+driftLoop();
+
+/* pause on hover */
+carousel.addEventListener("mouseenter", () => drifting = false);
+carousel.addEventListener("mouseleave", () => drifting = true);
+
+document.getElementById("mustCarousel").addEventListener("click", e => {
+  const card = e.target.closest(".must-card");
+  if (!card) return;
+
+  // stop motion
+  drifting = false;
+
+  // reset others
+  document.querySelectorAll(".must-card").forEach(c => {
+    c.classList.remove("active");
+  });
+
+  // activate selected
+  card.classList.add("active");
+});

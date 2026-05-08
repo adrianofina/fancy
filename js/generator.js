@@ -1,6 +1,19 @@
 /* ================================
-   GENERATOR — NEW STYLE ENGINE
+   GENERATOR ï¿½ NEW STYLE ENGINE
 ================================ */
+
+const inputEl = document.getElementById("genInput");
+
+inputEl.addEventListener("input", debounceAutoGenerate);
+
+function debounceAutoGenerate() {
+  clearTimeout(inputEl._t);
+  inputEl._t = setTimeout(() => {
+    if (inputEl.value.length > 3) {
+      generateLook();
+    }
+  }, 400);
+}
 
 document.getElementById("genBtn").addEventListener("click", generateLook);
 

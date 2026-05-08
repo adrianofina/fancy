@@ -925,47 +925,102 @@ input, select, button, textarea { font-family: inherit; }
 .must-arrow:hover { background: var(--black); color: var(--ivory); border-color: var(--black); }
 
 .carousel {
-  display: flex; gap: 10px;
-  overflow-x: auto; scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  padding-bottom: 6px;
-  -webkit-overflow-scrolling: touch;
-}
-.carousel::-webkit-scrollbar { display: none; }
-
-.must-card {
-  flex: 0 0 min(185px, 42vw); scroll-snap-align: start;
-  background: rgba(255,255,255,.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0;
   overflow: hidden;
-  transition: transform .32s var(--ease);
+  padding: 30px 0;
+  cursor: grab;
 }
-.must-card:hover { transform: translateY(-3px); }
 
-.must-card-art {
-  aspect-ratio: 1/1;
-  background: var(--blush);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 32px; overflow: hidden;
-}
-.must-card-art img { width: 100%; height: 100%; object-fit: cover; }
-.must-card-body { padding: 12px 14px 14px; }
-.must-card-name  { font-family: var(--ff-display); font-size: 14px; margin-bottom: 3px; }
-.must-card-desc  { font-size: 9px; color: var(--muted); font-weight: 300; line-height: 1.5; margin-bottom: 10px; }
+/* stacking effect */
+.must-card {
+  position: relative;
+  width: 200px;
+  height: 260px;
 
-.must-status-row { display: flex; gap: 5px; }
-.mst-btn {
-  flex: 1; padding: 7px 4px; text-align: center;
-  font-size: 8px; letter-spacing: .14em; text-transform: uppercase;
-  font-weight: 300; border: 1px solid var(--border);
-  background: transparent; color: var(--muted);
-  cursor: pointer; transition: all .2s;
+  margin-left: -60px; /* overlap */
+
+  perspective: 1000px;
+
+  transition: transform 0.5s ease, opacity 0.5s ease;
 }
-.mst-btn:hover   { border-color: var(--charcoal); color: var(--charcoal); }
-.mst-btn.own     { background: var(--scarlet); color: var(--ivory); border-color: var(--scarlet); }
-.mst-btn.want    { background: var(--black);   color: var(--ivory); border-color: var(--black); }
+
+/* first one shouldn't clip */
+.must-card:first-child {
+  margin-left: 0;
+}
+
+/* inner flip container */
+.must-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+
+/* front */
+.must-front,
+.must-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  overflow: hidden;
+}
+
+/* front look */
+.must-front {
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* back (image) */
+.must-back {
+  transform: rotateY(180deg);
+}
+
+.must-back img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* hover = slight lift */
+.must-card:hover {
+  transform: translateY(-10px);
+  z-index: 5;
+}
+
+/* active card */
+.must-card.active {
+  transform: translateY(-20px) scale(1.05);
+  z-index: 10;
+}
+
+/* flip when active */
+.must-card.active .must-inner {
+  transform: rotateY(180deg);
+}
+
+/* fade others */
+.must-card:not(.active) {
+  opacity: 0.6;
+}
+
+.must-card.active ~ .must-card {
+  opacity: 0.4;
+}
+
+.must-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #111, #1a1a1a);
+}
 
 /* Essentials grid */
 .essentials-grid {
@@ -1136,3 +1191,51 @@ input, select, button, textarea { font-family: inherit; }
   transform: translateY(0) scale(1);
 }
 
+.carousel {
+  display: flex;
+  gap: 20px;
+  overflow: hidden;
+  scroll-behavior: auto; /* we control it manually */
+  padding: 10px 0;
+}
+
+.must-card {
+  min-width: 220px;
+  flex-shrink: 0;
+
+  background: rgba(255,255,255,0.03);
+  border-radius: 18px;
+  padding: 18px;
+
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.must-card:hover {
+  transform: translateY(-6px);
+}
+
+/* subtle fade edges (this is important for “cinematic” feel) */
+.must-wrap {
+  position: relative;
+}
+
+.must-wrap::before,
+.must-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 60px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.must-wrap::before {
+  left: 0;
+  background: linear-gradient(to right, #0a0a0a, transparent);
+}
+
+.must-wrap::after {
+  right: 0;
+  background: linear-gradient(to left, #0a0a0a, transparent);
+}
